@@ -13,25 +13,46 @@ prompt = input("Enter your image prompt for the model: ") #User prompt
 
 """Image Stored"""
 
-!pip install diffusers transformers accelerate
 
 from diffusers import StableDiffusionPipeline
 import torch
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the Hugging Face token from environment variables
+hf_token = os.getenv("HUGGING_FACE_TOKEN")
+if not hf_token:
+    raise ValueError("Hugging Face token not found. Make sure to set HUGGING_FACE_TOKEN in your .env file.")
 
 # Login with your Hugging Face token
 from huggingface_hub import login
-login("putYourTokenHere")
+login(hf_token)
 
-# Load the model
+# Determine the correct device and load the model
+if torch.cuda.is_available():
+    device = "cuda"
+    print("Using CUDA (GPU)")
+elif torch.backends.mps.is_available():
+    device = "mps"
+    print("Using MPS (Apple Silicon GPU)")
+else:
+    device = "cpu"
+    print("Using CPU")
+
 pipe = StableDiffusionPipeline.from_pretrained(
     "CompVis/stable-diffusion-v1-4",
     torch_dtype=torch.float16,
-    token="putYourTokenHere"
-).to("cuda")  # Use GPU
+    token=hf_token
+).to(device)
 
 # Generate an image
 image = pipe(prompt).images[0]
 
-# Display the image
-from IPython.display import display
-display(image)
+# Display the image. This will open the image in your default image viewer.
+image.show()
+
+# Alternatively, to save the image to a file, you can use:
+# image.save("generated_image.png")
