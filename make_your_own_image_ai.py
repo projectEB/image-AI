@@ -44,7 +44,7 @@ else:
 
 pipe = StableDiffusionPipeline.from_pretrained(
     "CompVis/stable-diffusion-v1-4",
-    torch_dtype=torch.float16,
+    dtype=torch.float16,
     token=hf_token
 ).to(device)
 
